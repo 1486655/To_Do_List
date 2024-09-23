@@ -42,7 +42,7 @@ function updateUI(){
     let newInnerHTML = ''
     todoList.forEach((todoElement, todoIndex) =>{
         newInnerHTML += `
-        <div class = "todo">
+        <div class = "todo" draggable="true" ondragstart="drag(event)" id="todo-${todoIndex}">
             <p>${todoElement}</p>
             <div class="btnContainer">
                 <button class="iconBtn" onclick="editTodo(${todoIndex})">
@@ -58,8 +58,39 @@ function updateUI(){
 
     todoContainer.innerHTML = newInnerHTML
 
+    // Add event listeners for drag and drop
+    const todos = document.querySelectorAll('.todo');
+    todos.forEach(todo => {
+        todo.addEventListener('dragover', allowDrop);
+        todo.addEventListener('drop', drop);
+    });
+
     //to save to local storage
     localStorage.setItem('todos', JSON.stringify({todoList}))
+}
+
+function allowDrop(event) {
+    event.preventDefault(); // Prevent default to allow drop
+}
+
+function drag(event) {
+    event.dataTransfer.setData("text", event.target.id); // Store the id of the dragged element
+}
+
+function drop(event) {
+    event.preventDefault();
+    const data = event.dataTransfer.getData("text"); // Get the id of the dragged element
+    const draggedElementIndex = parseInt(data.split('-')[1]); // Extract the index
+
+    // Get the target index from the drop event
+    const targetElement = event.target.closest('.todo');
+    const targetIndex = Array.from(todoContainer.children).indexOf(targetElement);
+
+    // Move the dragged element to the new position
+    const draggedElement = todoList.splice(draggedElementIndex, 1)[0];
+    todoList.splice(targetIndex, 0, draggedElement); // Insert the dragged element at the target index
+
+    updateUI(); // Refresh the UI
 }
 
 addBtn.addEventListener('click', addTodo) // upon clicking the button the addTodo function will occur
